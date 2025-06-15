@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administrador</title>
+  <link rel="stylesheet" href="{% static 'css/estilo.css' %}" />
+  <link rel="icon" href="{% static 'img/favicon.png' %}" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+  <header>
+    <div class="container-nav">
+      <div class="logo">
+        <img src="{% static 'img/logo.png' %}" alt="Logo">
+        <span>Cabañas Algarrobo</span>
+      </div>
+      <div class="menu-toggle" id="toggle">☰</div>
+      <nav id="menu">
+        <a href="{% url 'index' %}">Inicio</a>
+        <a href="{% url 'ver_cabanas' %}">Cabañas</a>
+        <a href="{% url 'contacto' %}">Contacto</a>
+        <a href="{% url 'comentarios' %}">Comentarios</a>
+        <a href="{% url 'inventario' %}">Inventario</a>
+      </nav>
+      <a class="btn-login" href="{% url 'logout' %}">Cerrar Sesión</a>
+    </div>
+  </header>
+
+  <main style="padding: 40px; text-align: center;">
+    <h2>Bienvenido Administrador {{ nombre|default:"" }}</h2>
+    <p>Desde este panel puedes gestionar usuarios, cabañas, reservas y más.</p>
+
+    <br><br><br>
+    <a href="{% url 'admin_cabanas' %}" class="btn-card">🏪 Cabañas</a>
+    <br><br><br>
+    <a href="{% url 'inventario' %}" class="btn-card">🍽️ Inventario</a>
+    <br><br><br>
+    <a href="{% url 'listar_pagos' %}" class="btn-card">💲 Pagos</a>
+    <br><br><br>
+    <a href="{% url 'listar_reservas' %}" class="btn-card">📃 Reservas</a>
+    <br><br><br>
+    <a href="{% url 'listar_usuarios' %}" class="btn-card">🕵️‍♂️ Usuarios</a>
+    <br>
+
+    <br><br>
+
+    {% if hay_mensajes_nuevos %}
+      <a href="{% url 'marcar_mensajes_leidos' %}" class="mensaje-alerta vibrar">
+        📩 Tienes nuevos mensajes
+      </a>
+    {% else %}
+      <a href="{% url 'admin:app_mensajecontacto_changelist' %}" class="mensaje-alerta sin-mensajes">
+        📩 No hay mensajes nuevos
+      </a>
+    {% endif %}
+
+    <br><br><br>
+
+    {% if reservas_pendientes %}
+    <section class="reservas-pendientes">
+      <h3>📋 Reservas Pendientes</h3>
+      {% for r in reservas_pendientes %}
+        <div class="reserva-box">
+          <p><strong>Reserva #{{ r.id_reserva }}</strong></p>
+          <p>Cliente: {{ r.usuario.nombre }}</p>
+          <p>Cabaña: {{ r.cabana.nombre }}</p>
+          <p>Fechas: {{ r.fecha_inicio }} ➔ {{ r.fecha_fin }}</p>
+          <div class="reserva-botones">
+            <a href="{% url 'confirmar_reserva' r.id_reserva %}" class="btn-confirmar">✅ Confirmar</a>
+            <a href="{% url 'rechazar_reserva' r.id_reserva %}" class="btn-rechazar">❌ Rechazar</a>
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+    {% else %}
+      <p class="no-reservas">✅ No hay reservas pendientes.</p>
+    {% endif %}
+
+    <br><br><br>
+
+    <section class="comentarios-panel">
+      <h3>🚸️ Comentarios recientes</h3>
+      {% if comentarios_recientes %}
+        <div class="carrusel-comentarios">
+          <div class="carrusel-inner" id="carrusel-inner">
+            {% for comentario in comentarios_recientes %}
+            <div class="comentario-slide">
+              <p><strong>{{ comentario.nombre }}</strong> ({{ comentario.fecha|date:"d M Y H:i" }})</p>
+              <p>{{ comentario.comentario }}</p>
+              <p class="estrellas">
+                {% for i in "12345"|make_list %}
+                  {% if forloop.counter <= comentario.estrellas %}
+                    <span style="color: #ffc73a;">★</span>
+                  {% else %}
+                    <span style="color: #ccc;">☆</span>
+                  {% endif %}
+                {% endfor %}
+              </p>
+            </div>
+            {% endfor %}
+          </div>
+          <button class="btn-carrusel" onclick="moverCarrusel(-1)">⬅</button>
+          <button class="btn-carrusel" onclick="moverCarrusel(1)">➡</button>
+        </div>
+      {% else %}
+        <p>No hay comentarios aún.</p>
+      {% endif %}
+    </section>
+
+  </main>
+
+  {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <footer>
+    <div class="footer-info">
+      <div>
+        <p>correo@ejemplo.com</p>
+        <p>+56900000000</p>
+        <p>El Manzano, Parcela 5, Algarrobo</p>
+      </div>
+      <div>
+        <a href="#">Términos y condiciones</a>
+        <a href="#">Política de privacidad</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html>

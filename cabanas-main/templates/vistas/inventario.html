@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventario por Cabaña</title>
+  <link rel="stylesheet" href="{% static 'css/estilo.css' %}" />
+  <link rel="icon" href="{% static 'img/favicon.png' %}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <header>
+    <div class="container-nav">
+      <div class="logo">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" />
+        <span>Cabañas Algarrobo</span>
+      </div>
+      <div class="menu-toggle" id="toggle">☰</div>
+      <nav id="menu">
+        <a href="{% url 'index' %}">Inicio</a>
+        <a href="{% url 'ver_cabanas' %}">Cabañas</a>
+        <a href="{% url 'contacto' %}">Contacto</a>
+        <a href="{% url 'comentarios' %}">Comentarios</a>
+        <a href="{% url 'inventario_view' %}">Inventario</a>
+      </nav>
+      <a class="btn-login" href="{% url 'logout' %}">Cerrar Sesión</a>
+    </div>
+  </header>
+
+  <main style="padding: 40px; text-align: center;">
+    <h2>📦 Inventario por Cabaña</h2>
+
+    <!-- Selector de Cabaña -->
+    <form method="get" action="{% url 'inventario_view' %}" class="selector-cabana">
+      
+  <label>Selecciona una cabaña:</label>
+  <select name="cabana_id" onchange="this.form.submit()">
+    <option value="">-- Seleccionar --</option>
+    {% for c in cabanas %}
+      <option value="{{ c.id_cabana }}"
+        {% if cabana_seleccionada and c.id_cabana == cabana_seleccionada.id_cabana %}
+          selected
+        {% endif %}>
+        {{ c.nombre }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+    {% if cabana_seleccionada %}
+    <h3>🧰 Inventario de: {{ cabana_seleccionada.nombre }}</h3>
+
+    <!-- Mostrar inventario actual con campos editables -->
+    <form method="post" action="{% url 'guardar_inventario_estado' %}" class="form-agregar">
+      {% csrf_token %}
+      <input type="hidden" name="cabana_id" value="{{ cabana_seleccionada.id_cabana }}">
+
+      <table class="tabla-inventario">
+        <tr>
+          <th>✔️</th>
+          <th>Objeto</th>
+          <th>Cantidad</th>
+          <th>Estado</th>
+          <th>Observación</th>
+        </tr>
+        {% for item in inventario %}
+        <tr>
+          <td><input type="checkbox" name="seleccionados" value="{{ item.id_item }}"></td>
+          <td>{{ item.nombre }}</td>
+          <td><input type="number" name="cantidad_{{ item.id_item }}" value="{{ item.cantidad }}"></td>
+          <td><input type="text" name="estado_{{ item.id_item }}" value="{{ item.ubicacion }}"></td>
+          <td><input type="text" name="observacion_{{ item.id_item }}"
+              value="{{ item.observacion|default_if_none:'' }}"></td>
+        </tr>
+        {% endfor %}
+      </table>
+
+
+      <div class="botones-acciones">
+        <button type="submit" class="btn-guardar">💾 Guardar Cambios</button>
+        <button type="submit" class="btn-eliminar" name="accion" value="eliminar">🗑️ Eliminar</button>
+      </div>
+
+      </div>
+
+    </form>
+    
+    <hr style="margin: 40px 0;">
+
+    <!-- Agregar nuevo objeto -->
+    <h3>➕ Agregar nuevo objeto</h3>
+    <form method="post" action="{% url 'guardar_inventario_estado' %}" class="form-agregar">
+      {% csrf_token %}
+      <input type="hidden" name="cabana_id" value="{{ cabana_seleccionada.id_cabana }}">
+
+      <div class="form-agregar-grid">
+        <input type="text" name="nuevo_nombre" placeholder="Nombre del objeto" required class="input-campo">
+        <input type="number" name="nuevo_cantidad" placeholder="Cantidad" required class="input-campo">
+        <input type="text" name="nuevo_estado" placeholder="Estado" required class="input-campo">
+        <input type="text" name="nuevo_observacion" placeholder="Observación (opcional)" class="input-campo">
+      </div>
+
+      <button type="submit" class="btn-guardar" style="max-width: 9%;">Guardar</button>
+    </form>
+    {% endif %}
+    <br>
+    <a href="{% url 'panel_admin' %}" class="btn btn-outline-primary">Volver al Panel de Administración</a>
+  </main>
+
+  <footer>
+    <div class="footer-info">
+      <div>
+        <p>correo@ejemplo.com</p>
+        <p>+56900000000</p>
+        <p>El Manzano, Parcela 5, Algarrobo</p>
+      </div>
+      <div>
+        <a href="#">Términos y condiciones</a>
+        <a href="#">Política de privacidad</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+
+</html>
