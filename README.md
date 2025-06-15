@@ -43,7 +43,7 @@ Sigue estos pasos para poner en marcha el proyecto en tu entorno local:
 
 1.  **Clona el repositorio:**
     ```bash
-    git clone [https://github.com/tu_usuario/cabanas-algarrobo.git](https://github.com/tu_usuario/cabanas-algarrobo.git)
+    git clone [https://github.com/DanGamer23/cabanas-algarrobo.git]
     cd cabanas-algarrobo
     ```
 
