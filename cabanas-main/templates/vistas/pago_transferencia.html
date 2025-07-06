@@ -8,7 +8,13 @@
   <link rel="stylesheet" href="{% static 'css/estilo.css' %}" />
 </head>
 <body class="login-body">
-
+  {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
   <header>
     <div class="container-nav">
       <div class="logo">
@@ -34,8 +40,15 @@
     <p><strong>Nombre:</strong> Juan Pérez</p>
     <p><strong>RUT:</strong> 12.345.678-9</p>
     <p><strong>Correo:</strong> contacto@cabanasalgarrobo.cl</p>
-    <p><strong>Asunto:</strong> Pago Reserva N°XXX</p>
-    <p>Una vez realizada la transferencia, tu reserva quedará pendiente de confirmación por un administrador.</p>
+    <p><strong>Asunto:</strong> Pago Reserva</p>
+    <p><strong>Monto:</strong> 50000</p>
+    <p> Una vez realizada la transferencia, tu reserva quedará pendiente de confirmación por un administrador.</p>
+    <p>Recuerda enviar el comprobante de la transferencia al correo indicado.</p>
+    <br>
+    <form method="POST" class="login-form">
+      {% csrf_token %}
+      <button type="submit">He realizado la transferencia</button>
+    </form>
   </main>
 
   <footer class="footer-login">

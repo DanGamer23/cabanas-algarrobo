@@ -53,6 +53,7 @@ class Pago(models.Model):
     metodo_pago = models.CharField(max_length=30, default='Transferencia')
     fecha_pago = models.DateTimeField(auto_now_add=True)
     observaciones = models.CharField(max_length=100, null=True, blank=True)
+    confirmado = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'pagos'
@@ -60,6 +61,7 @@ class Pago(models.Model):
 
     def __str__(self):
         return f"Pago #{self.id_pago}"
+
 
 
 class Inventario(models.Model):

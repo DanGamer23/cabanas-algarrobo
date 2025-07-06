@@ -9,7 +9,13 @@
   <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
 </head>
 <body class="login-body">
-
+  {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
   <!-- NAVBAR -->
   <header>
     <div class="container-nav">

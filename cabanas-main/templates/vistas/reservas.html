@@ -8,7 +8,13 @@
   <link rel="stylesheet" href="{% static 'css/estilo.css' %}" />
 </head>
 <body class="login-body">
-
+  {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
   <!-- Navbar -->
   <header>
     <div class="container-nav">
@@ -39,7 +45,7 @@
       <label>Fecha Fin</label>
       <input type="date" name="fecha_fin" id="fecha_fin" required oninput="validarFechas()">
 
-      <button type="submit">Confirmar Reserva</button>
+      <button type="submit" href=" {% url 'pago_transferencia' %}">Confirmar Reserva</button>
     </form>
   </main>
 

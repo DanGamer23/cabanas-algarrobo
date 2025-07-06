@@ -10,7 +10,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
-    
+   {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}   
 <div class="container mt-5">
     
     <h2 class="text-center mb-4">{{ accion }} Cabaña</h2>

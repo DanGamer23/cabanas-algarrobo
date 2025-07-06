@@ -12,6 +12,13 @@
 </head>
 
 <body>
+  {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
   <header>
     <div class="container-nav">
       <div class="logo">

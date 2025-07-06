@@ -9,7 +9,13 @@
   <link rel="stylesheet" href="{% static 'css/estilo.css' %}" />
 </head>
 <body class="login-body">
-
+  {% if messages %}
+    <div id="mensaje-flotante">
+      {% for message in messages %}
+        <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
   <!-- Encabezado -->
   <header>
     <div class="container-nav">

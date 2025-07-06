@@ -132,13 +132,24 @@ def reservar_cabana(request, id_cabana):
             estado='Pendiente'
         )
         messages.success(request, 'Reserva realizada correctamente.')
-        return redirect('panel_cliente')
+        return redirect('pago_transferencia')
 
     return render(request, 'reservar.html')
 
 # Confirmar o rechazar reserva
 def confirmar_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id)
+
+    pago = Pago.objects.filter(id_reserva=reserva.id_reserva).first()
+
+    if not pago:
+        messages.error(request, "❌ No se encontró un pago asociado a esta reserva.")
+        return redirect('panel_admin')
+
+    if not pago.confirmado:
+        messages.warning(request, "⚠️ El pago aún no ha sido confirmado. No se puede confirmar la reserva.")
+        return redirect('panel_admin')
+
     reserva.estado = 'Confirmada'
     reserva.save()
     messages.success(request, f"✅ Reserva #{reserva_id} confirmada exitosamente.")
@@ -146,12 +157,22 @@ def confirmar_reserva(request, reserva_id):
 
 def rechazar_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id)
+
+    # 1. Eliminar los pagos vinculados a la reserva
+    Pago.objects.filter(id_reserva=reserva.id_reserva).delete()
+
+    # 2. Guardar referencia a la cabaña antes de borrar la reserva
     cabana = Cabana.objects.get(pk=reserva.cabana.id_cabana)
+
+    # 3. Eliminar la reserva
     reserva.delete()
+
+    # 4. Verificar si la cabaña tiene otras reservas
     tiene_otra_reserva = Reserva.objects.filter(cabana=cabana).exists()
-    if not Reserva.objects.filter(cabana=cabana).exists():
+    if not tiene_otra_reserva:
         cabana.estado = "Disponible"
         cabana.save()
+
     messages.success(request, "❌ Reserva rechazada correctamente. Cabaña disponible.")
     return redirect('panel_admin')
 
@@ -283,10 +304,26 @@ def crear_cuenta(request):
 
 # Transferencia de pago
 def pago_transferencia(request):
+    id_usuario = request.session.get('usuario_id')
+    reserva = Reserva.objects.filter(usuario_id=id_usuario).order_by('id_reserva').last()
+
+    if request.method == 'POST':
+        if reserva:
+            monto = 50000  # Monto fijo para la reserva
+
+            nuevo_pago = Pago(
+                id_reserva=reserva.id_reserva,
+                monto=monto,
+                metodo_pago='transferencia'
+            )
+            nuevo_pago.save()
+
+            messages.success(request, "Pago realizado con éxito")
+            return redirect('panel_cliente')
+        else:
+            messages.error(request, "No tienes reservas pendientes para pagar")
     nombre = request.session.get('usuario_nombre', '')
-    return render(request, 'vistas/pago_transferencia.html', {'nombre': nombre})
-
-
+    return render(request, 'vistas/pago_transferencia.html', {'nombre': nombre, 'reserva': reserva})
 
 
 
@@ -493,6 +530,15 @@ def listar_pagos(request):
     pagos = Pago.objects.all()
     return render(request, 'vistas/listar_pagos.html', {'pagos': pagos})
 
+# Confirmar pago
+
+def confirmar_pago(request, id_pago):
+    pago = get_object_or_404(Pago, pk=id_pago)
+    pago.confirmado = True
+    pago.save()
+    messages.success(request, f"💰 Pago #{id_pago} confirmado correctamente.")
+    return redirect('listar_pagos')
+
 # Listar reservas
 def listar_reservas(request):
     reservas = Reserva.objects.select_related('usuario', 'cabana').all()
@@ -521,6 +567,39 @@ def exportar_reservas_csv(request):
         ])
 
     return response
+
+# Exportar pagos a excel
+def exportar_pagos_excel(request):
+    output = io.BytesIO()
+
+    # Crear archivo Excel
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet('Pagos')
+
+    # Encabezados
+    headers = ['ID Pago', 'ID Reserva', 'Monto', 'Método de Pago', 'Fecha de Pago', 'Observaciones', 'Confirmado']
+    for col, header in enumerate(headers):
+        worksheet.write(0, col, header)
+
+    # Filas
+    pagos = Pago.objects.all()
+    for row_num, pago in enumerate(pagos, start=1):
+        worksheet.write(row_num, 0, pago.id_pago)
+        worksheet.write(row_num, 1, pago.id_reserva)
+        worksheet.write(row_num, 2, float(pago.monto))
+        worksheet.write(row_num, 3, pago.metodo_pago.capitalize())
+        worksheet.write(row_num, 4, pago.fecha_pago.strftime('%d/%m/%Y %H:%M'))
+        worksheet.write(row_num, 5, pago.observaciones or '-')
+        worksheet.write(row_num, 6, 'Sí' if pago.confirmado else 'No')
+
+    workbook.close()
+    output.seek(0)
+
+    # Respuesta
+    response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=pagos.xlsx'
+    return response
+
 
 # Listar usuarios:
 def listar_usuarios(request):
